@@ -1,6 +1,10 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app.dart';
 import '../../../../core/config/env_config.dart';
@@ -28,6 +32,28 @@ class ChatSidebar extends ConsumerStatefulWidget {
       context: context,
       builder: (ctx) => const _LlmSettingsDialog(),
     );
+  }
+
+  /// Открывает презентацию проекта (HTML / PDF / PPTX) через url_launcher.
+  static Future<void> openProjectPresentation(BuildContext context) async {
+    final uri = kIsWeb
+        ? Uri.base.resolve('docs/presentation.html')
+        : Uri.file(
+            '${Directory.current.path}${Platform.pathSeparator}docs${Platform.pathSeparator}presentation.html',
+          );
+
+    final launched = await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    );
+
+    if (!launched && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Файлы презентации находятся в папке docs/'),
+        ),
+      );
+    }
   }
 
   /// Открывает нижнюю шторку выбора источника документа: Камера (OCR), Галерея фото или Файлы.
@@ -279,47 +305,64 @@ class _ChatSidebarState extends ConsumerState<ChatSidebar> {
 
             const Divider(height: 1),
 
-            // 4. Нижняя панель: статус API-ключа и переключение темы
+            // 4. Нижняя панель: презентация проекта, статус API-ключа и переключение темы
             Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () =>
-                          ChatSidebar.showLlmSettingsDialog(context),
-                      icon: Icon(
-                        LucideIcons.keyRound,
-                        size: 15,
-                        color: llmConfig.hasApiKey
-                            ? AppColors.success
-                            : AppColors.warning,
-                      ),
-                      label: Text(
-                        llmConfig.hasApiKey
-                            ? llmConfig.model
-                            : 'Настроить API',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12),
-                      ),
+                  OutlinedButton.icon(
+                    onPressed: () =>
+                        ChatSidebar.openProjectPresentation(context),
+                    icon: const Icon(LucideIcons.presentation, size: 15),
+                    label: const Text(
+                      'Открыть презентацию проекта',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  IconButton.outlined(
-                    tooltip: 'Переключить тему (Светлая / Темная)',
-                    icon: Icon(
-                      themeMode == ThemeMode.dark
-                          ? LucideIcons.sun
-                          : LucideIcons.moon,
-                      size: 17,
-                    ),
-                    onPressed: () {
-                      final next = themeMode == ThemeMode.dark
-                          ? ThemeMode.light
-                          : ThemeMode.dark;
-                      ref.read(themeModeProvider.notifier).state = next;
-                    },
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () =>
+                              ChatSidebar.showLlmSettingsDialog(context),
+                          icon: Icon(
+                            LucideIcons.keyRound,
+                            size: 15,
+                            color: llmConfig.hasApiKey
+                                ? AppColors.success
+                                : AppColors.warning,
+                          ),
+                          label: Text(
+                            llmConfig.hasApiKey
+                                ? llmConfig.model
+                                : 'Настроить API',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton.outlined(
+                        tooltip: 'Переключить тему (Светлая / Темная)',
+                        icon: Icon(
+                          themeMode == ThemeMode.dark
+                              ? LucideIcons.sun
+                              : LucideIcons.moon,
+                          size: 17,
+                        ),
+                        onPressed: () {
+                          final next = themeMode == ThemeMode.dark
+                              ? ThemeMode.light
+                              : ThemeMode.dark;
+                          ref.read(themeModeProvider.notifier).state = next;
+                        },
+                      ),
+                    ],
                   ),
                 ],
               ),

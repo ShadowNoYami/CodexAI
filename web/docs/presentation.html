@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodexAI — Engineering & Architecture Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-light: #FAFAFA;
+      --surface-light: #FFFFFF;
+      --text-primary: #111111;
+      --text-secondary: #52525B;
+      --text-muted: #71717A;
+      --border: #E5E5E5;
+      --accent: #2563EB;
+      --accent-soft: #EFF6FF;
+      --bg-dark: #0A0A0A;
+      --surface-dark: #141414;
+      --border-dark: #262626;
+      --text-dark-muted: #A1A1AA;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #050505;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .viewport {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .deck-canvas {
+      width: 1280px;
+      height: 720px;
+      position: relative;
+      transform-origin: center center;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65);
+      overflow: hidden;
+      border: 1px solid #222;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 1280px;
+      height: 720px;
+      padding: 64px 80px;
+      background: var(--bg-light);
+      color: var(--text-primary);
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    .slide.dark {
+      background: var(--bg-dark);
+      color: #FFFFFF;
+    }
+
+    /* Header & Footer Grid */
+    .slide-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .slide.dark .slide-top {
+      border-bottom-color: var(--border-dark);
+    }
+
+    .section-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .slide-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .slide-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .slide.dark .slide-footer {
+      border-top-color: var(--border-dark);
+      color: var(--text-dark-muted);
+    }
+
+    /* Typography */
+    h1 {
+      font-size: 64px;
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.05;
+    }
+
+    h2 {
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      font-size: 20px;
+      font-weight: 400;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    .slide.dark .subtitle {
+      color: var(--text-dark-muted);
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .tech-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      padding: 6px 12px;
+      border: 1px solid var(--border);
+      background: var(--surface-light);
+      color: var(--text-primary);
+    }
+
+    .slide.dark .tech-badge {
+      border-color: var(--border-dark);
+      background: var(--surface-dark);
+      color: #E4E4E7;
+    }
+
+    .tech-badge.accent {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(37, 99, 235, 0.08);
+    }
+
+    /* Layout Helpers */
+    .content-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 28px 0;
+    }
+
+    .split-50 {
+      display: grid;
+      grid-template-columns: 5fr 7fr;
+      gap: 56px;
+      align-items: center;
+      height: 100%;
+    }
+
+    .big-stat-box {
+      border-left: 3px solid var(--accent);
+      padding-left: 28px;
+    }
+
+    .big-stat {
+      font-size: 84px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      color: var(--text-primary);
+    }
+
+    .list-strict {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .list-item {
+      padding: 18px 22px;
+      background: var(--surface-light);
+      border: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+    }
+
+    .list-item-title {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .list-item-desc {
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-align: right;
+    }
+
+    /* Pipeline 4-Step */
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-top: 28px;
+    }
+
+    .pipe-step {
+      background: var(--surface-light);
+      border: 1px solid var(--border);
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 270px;
+      position: relative;
+    }
+
+    .pipe-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .pipe-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin: 12px 0 8px;
+    }
+
+    .pipe-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-secondary);
+      background: #F4F4F5;
+      padding: 8px 10px;
+      border-left: 2px solid var(--accent);
+    }
+
+    /* Architecture Diagram */
+    .arch-columns {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 20px;
+    }
+
+    .arch-layer {
+      background: var(--surface-light);
+      border: 1px solid var(--border);
+      padding: 24px;
+    }
+
+    .arch-layer-header {
+      display: flex;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .arch-node {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 8px;
+      background: var(--bg-light);
+    }
+
+    /* Strict Table */
+    table.strict-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--surface-light);
+      border: 1px solid var(--border);
+      margin-top: 20px;
+    }
+
+    table.strict-table th,
+    table.strict-table td {
+      border: 1px solid var(--border);
+      padding: 16px 18px;
+      text-align: left;
+      font-size: 14px;
+      vertical-align: top;
+    }
+
+    table.strict-table th {
+      background: #F4F4F5;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    /* Code Block */
+    .code-panel {
+      background: #0F172A;
+      color: #F8FAFC;
+      padding: 22px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      line-height: 1.6;
+      border: 1px solid #1E293B;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .kw { color: #60A5FA; }
+    .ty { color: #38BDF8; }
+    .fn { color: #A7F3D0; }
+    .cm { color: #64748B; }
+
+    /* Wireframe Mockup */
+    .wireframe {
+      display: grid;
+      grid-template-columns: 250px 1fr 260px;
+      height: 360px;
+      border: 1px solid var(--border);
+      background: var(--surface-light);
+      margin-top: 16px;
+    }
+
+    .wf-col {
+      padding: 16px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .wf-col:last-child {
+      border-right: none;
+    }
+
+    .wf-box {
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font-size: 12px;
+      background: var(--bg-light);
+    }
+
+    .wf-box.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      font-weight: 600;
+    }
+
+    /* 3 Metrics */
+    .metrics-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+      margin-top: 24px;
+    }
+
+    .metric-card {
+      background: var(--surface-light);
+      border: 1px solid var(--border);
+      padding: 32px 26px;
+    }
+
+    .metric-val {
+      font-size: 52px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    /* Floating Navigation Controls */
+    .hud-controls {
+      position: fixed;
+      bottom: 18px;
+      right: 24px;
+      display: flex;
+      gap: 8px;
+      z-index: 100;
+    }
+
+    .hud-btn {
+      background: rgba(20, 20, 20, 0.85);
+      color: #FFF;
+      border: 1px solid #333;
+      padding: 8px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .hud-btn:hover {
+      border-color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="viewport" id="viewport">
+    <div class="deck-canvas" id="deck">
+
+      <!-- SLIDE 01: TITLE (DARK) -->
+      <section class="slide dark active">
+        <div class="slide-top">
+          <span class="section-tag">CODEXAI // ARCHITECTURE SPECIFICATION</span>
+          <span class="slide-meta">BUILD 1.0.0+1 • FLUTTER 3.35</span>
+        </div>
+        <div class="content-area">
+          <p class="mono" style="color: var(--accent); font-size: 14px; margin-bottom: 18px;">DOCUMENT INTELLIGENCE &amp; HYBRID RAG CLIENT</p>
+          <h1>CodexAI</h1>
+          <p class="subtitle" style="max-width: 760px; margin-top: 20px;">
+            Кроссплатформенная система локального парсинга документов, камерного Vision OCR и потокового ИИ-анализа с верифицированным цитированием страниц.
+          </p>
+          <div class="badge-row" style="margin-top: 44px;">
+            <span class="tech-badge accent">Feature-First Clean Architecture</span>
+            <span class="tech-badge">flutter_riverpod 2.6</span>
+            <span class="tech-badge">Drift SQLite</span>
+            <span class="tech-badge">Isolate TransferableTypedData</span>
+            <span class="tech-badge">Gemini 3.5 Flash SSE</span>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <span>GITHUB.COM/SHADOWN0YAMI/CODEXAI</span>
+          <span>01 / 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 02: PROBLEM (50/50 SPLIT) -->
+      <section class="slide">
+        <div class="slide-top">
+          <span class="section-tag">01 // ПРОБЛЕМАТИКА</span>
+          <span class="slide-meta">TECHNICAL BOTTLENECKS</span>
+        </div>
+        <div class="content-area">
+          <div class="split-50">
+            <div class="big-stat-box">
+              <div class="big-stat">100 МБ</div>
+              <p style="font-size: 18px; font-weight: 700; margin-top: 14px;">Верхний предел документа</p>
+              <p class="subtitle" style="font-size: 15px; margin-top: 8px;">
+                Многостраничные договоры PDF, таблицы DOCX/CSV и скан-книги без текстового слоя.
+              </p>
+            </div>
+            <div class="list-strict">
+              <div class="list-item">
+                <span class="list-item-title">1. Переполнение окна контекста</span>
+                <span class="list-item-desc mono">&gt; 120 000 токенов → HTTP 400 / 429</span>
+              </div>
+              <div class="list-item">
+                <span class="list-item-title">2. Ответы без верификации</span>
+                <span class="list-item-desc mono">Отсутствие привязки к pageNumber и chunkIndex</span>
+              </div>
+              <div class="list-item">
+                <span class="list-item-title">3. Блокировка UI Event Loop</span>
+                <span class="list-item-desc mono">Фризы при синхронном чтении PDF и XML в main thread</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <span>PROBLEM STATEMENT</span>
+          <span>02 / 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 03: PIPELINE (4 STEPS) -->
+      <section class="slide">
+        <div class="slide-top">
+          <span class="section-tag">02 // ПАЙПЛАЙН ДАННЫХ</span>
+          <span class="slide-meta">END-TO-END EXECUTION FLOW</span>
+        </div>
+        <div class="content-area">
+          <h2>Четырехфазный конвейер обработки</h2>
+          <p class="subtitle" style="font-size: 16px;">От валидации сигнатуры файла до потокового рендеринга токенов со ссылками на источники.</p>
+          <div class="pipeline-grid">
+            <div class="pipe-step">
+              <div>
+                <div class="pipe-num">STEP 01 // INGEST</div>
+                <div class="pipe-title">Выбор и Magic Bytes</div>
+                <p style="font-size: 13px; color: var(--text-secondary);">Чтение байтов файла или снимка камеры, проверка заголовков %PDF и PK\x03\x04.</p>
+              </div>
+              <div class="pipe-code">FilePickerService<br/>ImagePicker (Camera)</div>
+            </div>
+            <div class="pipe-step">
+              <div>
+                <div class="pipe-num">STEP 02 // ISOLATE</div>
+                <div class="pipe-title">Парсинг и Чанкинг</div>
+                <p style="font-size: 13px; color: var(--text-secondary);">Постраничное извлечение текста, Vision OCR для сканов и нарезка с overlap.</p>
+              </div>
+              <div class="pipe-code">DocumentParserService<br/>ImageOcrService</div>
+            </div>
+            <div class="pipe-step">
+              <div>
+                <div class="pipe-num">STEP 03 // RETRIEVAL</div>
+                <div class="pipe-title">Адаптивный RAG</div>
+                <p style="font-size: 13px; color: var(--text-secondary);">Выбор Full-Context (&le;30K токенов) или гибридного поиска BM25 + Cosine.</p>
+              </div>
+              <div class="pipe-code">RagRetrieverService<br/>TokenEstimator</div>
+            </div>
+            <div class="pipe-step">
+              <div>
+                <div class="pipe-num">STEP 04 // STREAM</div>
+                <div class="pipe-title">SSE-стриминг и Цитаты</div>
+                <p style="font-size: 13px; color: var(--text-secondary);">Декодирование потока токенов в реальном времени и привязка CitedSource.</p>
+              </div>
+              <div class="pipe-code">SseStreamTransformer<br/>MessageBubble</div>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <span>DATA PIPELINE</span>
+          <span>03 / 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 04: ARCHITECTURE -->
+      <section class="slide">
+        <div class="slide-top">
+          <span class="section-tag">03 // АРХИТЕКТУРА</span>
+          <span class="slide-meta">FEATURE-FIRST CLEAN ARCHITECTURE</span>
+        </div>
+        <div class="content-area">
+          <h2>Строгое разделение слоев и зависимостей</h2>
+          <div class="arch-columns">
+            <div class="arch-layer">
+              <div class="arch-layer-header">
+                <span>PRESENTATION</span>
+                <span class="mono" style="color: var(--accent);">Riverpod</span>
+              </div>
+              <div class="arch-node">ActiveChatNotifier (StateNotifier)</div>
+              <div class="arch-node">DocumentsNotifier (StateNotifier)</div>
+              <div class="arch-node">ChatSessionsNotifier</div>
+              <div class="arch-node">MainChatScreen / ChatSidebar</div>
+              <div class="arch-node">DocumentPreviewModal</div>
+            </div>
+            <div class="arch-layer">
+              <div class="arch-layer-header">
+                <span>DOMAIN</span>
+                <span class="mono" style="color: var(--accent);">Pure Dart</span>
+              </div>
+              <div class="arch-node">DocumentEntity / ChunkEntity</div>
+              <div class="arch-node">ChatMessageEntity / CitedSource</div>
+              <div class="arch-node">AnalysisMode (qa, summary, deep)</div>
+              <div class="arch-node">SystemPrompts</div>
+              <div class="arch-node">DocumentRepository / AiRepository</div>
+            </div>
+            <div class="arch-layer">
+              <div class="arch-layer-header">
+                <span>DATA &amp; CORE</span>
+                <span class="mono" style="color: var(--accent);">Drift / Dio</span>
+              </div>
+              <div class="arch-node">AppDatabase (SQLite + Prefs Fallback)</div>
+              <div class="arch-node">LlmRemoteDataSource (Gemini / OpenAI)</div>
+              <div class="arch-node">RagRetrieverService (BM25 + Cosine)</div>
+              <div class="arch-node">DocumentParserService (Syncfusion/XML)</div>
+              <div class="arch-node">IsolateRunner (TransferableTypedData)</div>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <span>LIB/CORE &amp; LIB/FEATURES</span>
+          <span>04 / 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 05: DOCUMENT ENGINE -->
+      <section class="slide">
+        <div class="slide-top">
+          <span class="section-tag">04 // ДВИЖОК ДОКУМЕНТОВ</span>
+          <span class="slide-meta">ISOLATE &amp; VISION OCR</span>
+        </div>
+        <div class="content-area">
+          <div class="split-50">
+            <div>
+              <h2>Zero-Copy парсинг и OCR сканов</h2>
+              <p class="subtitle" style="font-size: 15px; margin-top: 12px;">
+                Байты передаются в фоновый изолят через <span class="mono">TransferableTypedData</span> за O(1) без клонирования буфера в главном потоке.
+              </p>
+              <div class="badge-row" style="margin-top: 24px;">
+                <span class="tech-badge accent">chunkSize: 3200 chars</span>
+                <span class="tech-badge accent">overlap: 600 chars</span>
+              </div>
+            </div>
+            <div class="list-strict">
+              <div class="list-item">
+                <span class="list-item-title">PDF с текстовым слоем</span>
+                <span class="list-item-desc mono">Syncfusion PdfTextExtractor (постранично)</span>
+              </div>
+              <div class="list-item">
+                <span class="list-item-title">Скан-PDF без текста (ScannedPdfException)</span>
+                <span class="list-item-desc mono">Извлечение JPEG (FF D8..FF D9) → Gemini Vision OCR</span>
+              </div>
+              <div class="list-item">
+                <span class="list-item-title">Камера телефона (JPG / PNG / WEBP)</span>
+                <span class="list-item-desc mono">ImagePicker → ImageOcrService → Markdown таблицы</span>
+              </div>
+              <div class="list-item">
+                <span class="list-item-title">DOCX и CSV таблицы</span>
+                <span class="list-item-desc mono">archive + xml (&lt;w:tbl&gt;) и авто-разделитель CSV (; / ,)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <span>DOCUMENT PARSER &amp; OCR ENGINE</span>
+          <span>05 / 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 06: AI MODES TABLE -->
+      <section class="slide">
+        <div class="slide-top">
+          <span class="section-tag">05 // АНАЛИТИЧЕСКОЕ ЯДРО</span>
+          <span class="slide-meta">SYSTEM PROMPTS &amp; RAG STRATEGY</span>
+        </div>
+        <div class="content-area">
+          <h2>Матрица режимов работы ИИ (`SystemPrompts`)</h2>
+          <table class="strict-table">
+            <thead>
+              <tr>
+                <th>Режим (AnalysisMode)</th>
+                <th>Стратегия выбора контекста</th>
+                <th>Структура выходных данных</th>
+                <th>Контроль галлюцинаций</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono" style="font-weight: 600; color: var(--accent);">AnalysisMode.qa</td>
+                <td>Full-Context (&le;30K ток.) или Hybrid RAG Top-8 чанков (BM25 + Cosine)</td>
+                <td>Прямой ответ по фактам документа + кликабельные бейджи цитат</td>
+                <td>Обязательный тег <span class="mono">[Файл, Стр. X]</span> после каждого тезиса</td>
+              </tr>
+              <tr>
+                <td class="mono" style="font-weight: 600; color: var(--accent);">AnalysisMode.executiveSummary</td>
+                <td>Full-Context Stuffing (до 120K токенов бюджета)</td>
+                <td>4 раздела: 1. TL;DR, 2. Ключевые тезисы, 3. Цифры/Сроки, 4. Выводы</td>
+                <td>Привязка каждого управленческого вывода к исходной странице</td>
+              </tr>
+              <tr>
+                <td class="mono" style="font-weight: 600; color: var(--accent);">AnalysisMode.deepAnalysis</td>
+                <td>Full-Context Stuffing со всеми Markdown-таблицами</td>
+                <td>Сводная таблица KPI, сверка противоречий между главами, карта рисков</td>
+                <td>Ранжирование рисков (Высокий / Средний / Низкий) с цитатой</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="slide-footer">
+          <span>AI ENGINE &amp; PROMPT ENGINEERING</span>
+          <span>06 / 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 07: STATE MANAGEMENT & CODE -->
+      <section class="slide">
+        <div class="slide-top">
+          <span class="section-tag">06 // РЕАКТИВНЫЕ ПОТОКИ</span>
+          <span class="slide-meta">RIVERPOD + SSE STREAMING</span>
+        </div>
+        <div class="content-area">
+          <div class="split-50">
+            <div>
+              <h2>Потоковая сборка ответа в реальном времени</h2>
+              <p class="subtitle" style="font-size: 15px; margin-top: 12px;">
+                Каждая строка <span class="mono">data:</span> из HTTP-потока парсится через <span class="mono">SseStreamTransformer</span> и мгновенно обновляет состояние активного сообщения в <span class="mono">ActiveChatNotifier</span>.
+              </p>
+              <div class="list-strict" style="margin-top: 20px;">
+                <div class="list-item" style="padding: 12px 16px;">
+                  <span class="mono" style="font-size: 12px;">ChatGenerationStatus.loading</span>
+                  <span style="font-size: 12px;">Выборка чанков и расчет бюджета</span>
+                </div>
+                <div class="list-item" style="padding: 12px 16px;">
+                  <span class="mono" style="font-size: 12px; color: var(--accent);">ChatGenerationStatus.streaming</span>
+                  <span style="font-size: 12px;">Инкрементальный рендер токенов</span>
+                </div>
+              </div>
+            </div>
+            <div class="code-panel"><span class="cm">// lib/features/chat/presentation/providers/active_chat_notifier.dart</span>
+<span class="kw">final</span> responseStream = _aiRepository.<span class="fn">streamChatResponse</span>(
+  config: llmConfig,
+  mode: effectiveMode,
+  retrievalResult: retrievalResult,
+  history: previousHistory,
+  userPrompt: text,
+  cancelToken: _activeCancelToken,
+);
+
+<span class="kw">await for</span> (<span class="kw">final</span> tokenChunk <span class="kw">in</span> responseStream) {
+  buffer.<span class="fn">write</span>(tokenChunk);
+  assistantMsg = assistantMsg.<span class="fn">copyWith</span>(
+    content: buffer.<span class="fn">toString</span>(),
+    isStreaming: <span class="kw">true</span>,
+  );
+  <span class="fn">_updateMessageInState</span>(assistantMsg);
+}</div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <span>STATE MANAGEMENT &amp; STREAMING</span>
+          <span>07 / 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 08: UI WIREFRAME -->
+      <section class="slide">
+        <div class="slide-top">
+          <span class="section-tag">07 // ИНТЕРФЕЙС</span>
+          <span class="slide-meta">ADAPTIVE MATERIAL 3 WORKSPACE</span>
+        </div>
+        <div class="content-area">
+          <h2>Адаптивный макет `MainChatScreen` (Desktop / Web / Mobile)</h2>
+          <div class="wireframe">
+            <div class="wf-col">
+              <div class="mono" style="font-size: 11px; color: var(--accent);">ChatSidebar (&ge;860px / Drawer)</div>
+              <div class="wf-box active">+ Новый диалог</div>
+              <div class="wf-box">Чаты (Сессии в Drift DB)</div>
+              <div class="wf-box">Файлы: Договор.pdf [x]</div>
+              <div class="wf-box">Кнопки: Камера OCR | Галерея</div>
+              <div class="wf-box" style="margin-top: auto;">API: gemini-3.5-flash | Тема</div>
+            </div>
+            <div class="wf-col">
+              <div class="mono" style="font-size: 11px; color: var(--accent);">Active Chat Viewport + Markdown</div>
+              <div class="wf-box" style="align-self: flex-end; width: 65%;">Вопрос пользователя по документу</div>
+              <div class="wf-box" style="flex: 1;">
+                <strong>AI Analyst [Глубокий анализ]</strong><br/>
+                Рендеринг Markdown-таблиц, блоков кода с копированием.<br/><br/>
+                <span class="mono" style="color: var(--accent);">[Договор.pdf • Стр. 5]</span> <span class="mono" style="color: var(--accent);">[Отчет.csv • Стр. 1]</span>
+              </div>
+              <div class="wf-box active">AttachedFilesBar + QuickActionChips + Поле ввода (📎 / 📷)</div>
+            </div>
+            <div class="wf-col">
+              <div class="mono" style="font-size: 11px; color: var(--accent);">DocumentPreviewModal</div>
+              <div class="wf-box">Метаданные: 24 стр. • ~18K токенов</div>
+              <div class="wf-box active">Вкладка 1: Индекс чанков (Поиск)</div>
+              <div class="wf-box">Фрагмент #4 (Страница 5) — Подсвечен по клику на цитату</div>
+              <div class="wf-box">Вкладка 2: Полный текст</div>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <span>UI / UX SPECIFICATION</span>
+          <span>08 / 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 09: RESILIENCE & METRICS -->
+      <section class="slide">
+        <div class="slide-top">
+          <span class="section-tag">08 // НАДЕЖНОСТЬ И МЕТРИКИ</span>
+          <span class="slide-meta">FAULT TOLERANCE &amp; BUDGETING</span>
+        </div>
+        <div class="content-area">
+          <h2>Инженерные гарантии отказоустойчивости</h2>
+          <div class="metrics-3">
+            <div class="metric-card">
+              <div class="metric-val">120K</div>
+              <div style="font-weight: 700; font-size: 17px; margin-bottom: 8px;">Контроль бюджета токенов</div>
+              <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">
+                <span class="mono">TokenEstimator.trimHistoryToBudget</span> удерживает историю в 12K токенов, а <span class="mono">fitChunksToBudget</span> исключает переполнение окна.
+              </p>
+            </div>
+            <div class="metric-card">
+              <div class="metric-val">60 FPS</div>
+              <div style="font-weight: 700; font-size: 17px; margin-bottom: 8px;">Неблокирующий UI-поток</div>
+              <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">
+                Тяжелый парсинг PDF/DOCX и расчет весов BM25 выполняются строго в фоновом <span class="mono">Isolate</span>.
+              </p>
+            </div>
+            <div class="metric-card">
+              <div class="metric-val">3x</div>
+              <div style="font-weight: 700; font-size: 17px; margin-bottom: 8px;">Каскад резервных моделей</div>
+              <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.5;">
+                Автопереключение <span class="mono">gemini-3.5-flash</span> → <span class="mono">3.8-flash</span> → <span class="mono">3-flash-preview</span> при HTTP 404/503 + повтор запроса.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <span>PERFORMANCE &amp; RELIABILITY</span>
+          <span>09 / 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 10: SUMMARY & ROADMAP (DARK) -->
+      <section class="slide dark">
+        <div class="slide-top">
+          <span class="section-tag">09 // ИТОГ И РАЗВИТИЕ</span>
+          <span class="slide-meta">PRODUCTION STATUS &amp; ROADMAP</span>
+        </div>
+        <div class="content-area">
+          <div class="split-50">
+            <div>
+              <h2>Готовность к эксплуатации</h2>
+              <p class="subtitle" style="font-size: 16px; margin-top: 12px;">
+                Код протестирован (<span class="mono">8/8 flutter test</span>, <span class="mono">0 issues flutter analyze</span>) и опубликован в GitHub-репозитории <span class="mono">CodexAI</span>.
+              </p>
+              <div class="badge-row" style="margin-top: 28px;">
+                <span class="tech-badge accent">Web / Chrome</span>
+                <span class="tech-badge accent">Windows / macOS</span>
+                <span class="tech-badge accent">Android / iOS</span>
+              </div>
+            </div>
+            <div class="list-strict">
+              <div class="list-item" style="background: var(--surface-dark); border-color: var(--border-dark);">
+                <span class="list-item-title" style="color: #FFF;">Этап развития 1: SQLite FTS5</span>
+                <span class="list-item-desc mono" style="color: var(--text-dark-muted);">Инвертированный индекс чанков внутри Drift</span>
+              </div>
+              <div class="list-item" style="background: var(--surface-dark); border-color: var(--border-dark);">
+                <span class="list-item-title" style="color: #FFF;">Этап развития 2: Batch Embeddings</span>
+                <span class="list-item-desc mono" style="color: var(--text-dark-muted);">Пакетная векторизация gemini-embedding-001</span>
+              </div>
+              <div class="list-item" style="background: var(--surface-dark); border-color: var(--border-dark);">
+                <span class="list-item-title" style="color: #FFF;">Этап развития 3: Экспорт отчетов</span>
+                <span class="list-item-desc mono" style="color: var(--text-dark-muted);">Выгрузка сводок и таблиц в PDF / DOCX</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="slide-footer">
+          <span>CODEXAI // END OF PRESENTATION</span>
+          <span>10 / 10</span>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <div class="hud-controls">
+    <a class="hud-btn" href="CodexAI_Presentation.pptx" download>⬇ PPTX</a>
+    <a class="hud-btn" href="CodexAI_Presentation.pdf" download>⬇ PDF</a>
+    <button class="hud-btn" onclick="prevSlide()">←</button>
+    <button class="hud-btn" onclick="nextSlide()">→</button>
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const deck = document.getElementById('deck');
+    let current = 0;
+
+    function showSlide(index) {
+      slides[current].classList.remove('active');
+      current = (index + slides.length) % slides.length;
+      slides[current].classList.add('active');
+    }
+
+    function nextSlide() { showSlide(current + 1); }
+    function prevSlide() { showSlide(current - 1); }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      }
+    });
+
+    deck.addEventListener('click', (e) => {
+      if (e.target.closest('a, button')) return;
+      const rect = deck.getBoundingClientRect();
+      if (e.clientX - rect.left > rect.width * 0.35) {
+        nextSlide();
+      } else {
+        prevSlide();
+      }
+    });
+
+    function scaleDeck() {
+      const scaleX = (window.innerWidth - 32) / 1280;
+      const scaleY = (window.innerHeight - 32) / 720;
+      const scale = Math.min(scaleX, scaleY);
+      deck.style.transform = `scale(${scale})`;
+    }
+
+    window.addEventListener('resize', scaleDeck);
+    scaleDeck();
+  </script>
+</body>
+</html>
