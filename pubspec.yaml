@@ -1,0 +1,65 @@
+name: ai_doc_assistant
+description: Интеллектуальный ИИ-чат-бот для анализа документов и RAG.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # --- State Management & Architecture ---
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+  freezed_annotation: ^2.4.4
+  json_annotation: ^4.9.0
+
+  # --- Navigation ---
+  go_router: ^14.6.2
+
+  # --- Network & Streaming ---
+  dio: ^5.7.0
+
+  # --- Files & Document Parsing ---
+  file_picker: ^8.1.7
+  image_picker: ^1.1.2
+  syncfusion_flutter_pdf: ^28.1.33
+  archive: ^4.0.2
+  xml: ^6.5.0
+  csv: ^6.0.0
+
+  # --- Local Database (Drift / SQLite) ---
+  drift: ^2.22.1
+  drift_flutter: ^0.2.4
+  sqlite3_flutter_libs: ^0.5.28
+  path_provider: ^2.1.5
+  path: ^1.9.0
+
+  # --- UI / UX & Markdown ---
+  flutter_markdown: ^0.7.4+3
+  markdown: ^7.2.2
+  google_fonts: ^6.2.1
+  lucide_icons: ^0.257.0
+
+  # --- Utilities ---
+  uuid: ^4.5.1
+  intl: ^0.20.1
+  collection: ^1.19.0
+  shared_preferences: ^2.3.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+  # --- Code Generation ---
+  build_runner: ^2.4.13
+  riverpod_generator: ^2.6.3
+  freezed: ^2.5.7
+  json_serializable: ^6.9.0
+  drift_dev: ^2.22.1
+
+flutter:
+  uses-material-design: true
